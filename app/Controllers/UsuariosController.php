@@ -3,11 +3,12 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use App\Libraries\JWTHandler;
+use App\library\ErrorsReturn;
+use App\Library\JWTHandler;
 use App\Models\Cargo;
 use App\Models\Departamento;
 use App\Models\Usuario;
-
+use CodeIgniter\HTTP\Response;
 use League\Csv\Reader;
 
 class UsuariosController extends BaseController
@@ -134,37 +135,41 @@ class UsuariosController extends BaseController
         $nome = $arrayPuts->nome;
         $email = $arrayPuts->email;
         $senha = $arrayPuts->senha;
+        $confirmar_senha = $arrayPuts->confirmar_senha;
         $departamento_id = $arrayPuts->departamento_id;
         $cargo_id = $arrayPuts->cargo_id;
-        
+
         //Realizando a validação do departamento incorreto
-        $departamentoModel = new Departamento();
-        $departamento = $departamentoModel->where('ativo', '1')->find($departamento_id);
+        if ($departamento_id) {
+            $departamentoModel = new Departamento();
+            $departamento = $departamentoModel->where('ativo', '1')->find($departamento_id);
 
-        //Caso não exixtir departamento cadastrado com o id enviado, retorna a mensagem abaixo
-        if (!$departamento) {
-            $responseData = [
-                'status' => 'error',
-                'message' => 'O parâmetro departamento_id esta incorreto, não foi encontrado o respectivo departamento'
-            ];
+            //Caso não exixtir departamento cadastrado com o id enviado, retorna a mensagem abaixo
+            if (!$departamento) {
+                $responseData = [
+                    'status' => 'error',
+                    'message' => 'O parâmetro departamento_id esta incorreto, não foi encontrado o respectivo departamento'
+                ];
 
-            return $this->response->setStatusCode(404)->setJSON($responseData);
+                return $this->response->setStatusCode(404)->setJSON($responseData);
+            }
         }
 
         //Realizando a validação do cargo incorreto
-        $cargoModel = new Cargo();
-        $cargo = $cargoModel->where('ativo', '1')->find($cargo_id);
+        if ($cargo_id) {
+            $cargoModel = new Cargo();
+            $cargo = $cargoModel->where('ativo', '1')->find($cargo_id);
 
-        //Caso não exixtir cargo cadastrado com o id enviado, retorna a mensagem abaixo
-        if (!$cargo) {
-            $responseData = [
-                'status' => 'error',
-                'message' => 'O parâmetro cargo_id esta incorreto, não foi encontrado o respectivo cargo'
-            ];
+            //Caso não exixtir cargo cadastrado com o id enviado, retorna a mensagem abaixo
+            if (!$cargo) {
+                $responseData = [
+                    'status' => 'error',
+                    'message' => 'O parâmetro cargo_id esta incorreto, não foi encontrado o respectivo cargo'
+                ];
 
-            return $this->response->setStatusCode(404)->setJSON($responseData);
+                return $this->response->setStatusCode(404)->setJSON($responseData);
+            }
         }
-
         $usuarioModel = new Usuario();
 
         //validação de e-mail ja existente no sistema
@@ -173,23 +178,35 @@ class UsuariosController extends BaseController
         //Caso já exixtir usuario cadastrado com o email enviado, retorna a mensagem abaixo
         if ($usuarioExiste) {
             $responseData = [
-                'status' => 'error',
-                'message' => 'Já existe um usuário com o e-mail ' . $email
+                'errors' => ['email' => ['Já existe um usuário com o e-mail escolhido']]
             ];
 
-            return $this->response->setStatusCode(404)->setJSON($responseData);
+            return $this->response->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY)->setJSON($responseData);
+        }
+
+        //Validação da confirmação da senha
+        if ($senha && $confirmar_senha) {
+            if ($senha != $confirmar_senha) {
+                $responseData = [
+                    'errors' => ['confirmar_senha' => ["Os campos Senha e CSonfirmar senha não conferêm"]]
+                ];
+
+                return $this->response->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY)->setJSON($responseData);
+            }
         }
 
         //Dados para o novo usuario
         $data = [
             'nome' => $nome,
             'email' => $email,
-            'senha' => password_hash($senha, PASSWORD_DEFAULT),
             'cargo_id' => $cargo_id,
             'departamento_id' => $departamento_id,
             'ativo' => '1'
         ];
-
+        if ($senha) {
+            $data['senha'] = password_hash($senha, PASSWORD_DEFAULT);
+            $data['confirmar_senha'] = $senha;
+        }
         //Salva um novo usuario e retorna mensagem de sucesso
         if ($usuarioModel->save($data)) {
             $responseData = [
@@ -203,13 +220,12 @@ class UsuariosController extends BaseController
             //Caso ocorra um erro de validação, retorna o erro encontrado
             $errors = $usuarioModel->errors(); // Obtenha os erros de validação
 
+            $errosReturn = new ErrorsReturn();
             $responseData = [
-                'status' => 'error',
-                'message' => 'Erro na validação',
-                'errors' => $errors
+                'errors' =>  $errosReturn->errors($errors)
             ];
 
-            return $this->response->setStatusCode(400)->setJSON($responseData);
+            return $this->response->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY)->setJSON($responseData);
         }
     }
 
@@ -239,40 +255,45 @@ class UsuariosController extends BaseController
     {
 
         $objectPuts = $this->request->getJSON();
-        
+
         // Obtenha os parâmetros via PUT
         $nome = $objectPuts->nome;
         $email = $objectPuts->email;
         $senha = $objectPuts->senha;
+        $confirmar_senha = $objectPuts->confirmar_senha;
         $departamento_id = $objectPuts->departamento_id;
         $cargo_id = $objectPuts->cargo_id;
 
         //Realizando a validação do departamento incorreto
-        $departamentoModel = new Departamento();
-        $departamento = $departamentoModel->where('ativo', '1')->find($departamento_id);
+        if ($departamento_id) {
+            $departamentoModel = new Departamento();
+            $departamento = $departamentoModel->where('ativo', '1')->find($departamento_id);
 
-        //Caso não exixtir departamento cadastrado com o id enviado, retorna a mensagem abaixo
-        if (!$departamento) {
-            $responseData = [
-                'status' => 'error',
-                'message' => 'O parâmetro departamento_id esta incorreto, não foi encontrado o respectivo departamento'
-            ];
+            //Caso não exixtir departamento cadastrado com o id enviado, retorna a mensagem abaixo
+            if (!$departamento) {
+                $responseData = [
+                    'status' => 'error',
+                    'message' => 'O parâmetro departamento_id esta incorreto, não foi encontrado o respectivo departamento'
+                ];
 
-            return $this->response->setStatusCode(404)->setJSON($responseData);
+                return $this->response->setStatusCode(404)->setJSON($responseData);
+            }
         }
 
         //Realizando a validação do cargo incorreto
-        $cargoModel = new Cargo();
-        $cargo = $cargoModel->where('ativo', '1')->find($cargo_id);
+        if ($cargo_id) {
+            $cargoModel = new Cargo();
+            $cargo = $cargoModel->where('ativo', '1')->find($cargo_id);
 
-        //Caso não exixtir cargo cadastrado com o id enviado, retorna a mensagem abaixo
-        if (!$cargo) {
-            $responseData = [
-                'status' => 'error',
-                'message' => 'O parâmetro cargo_id esta incorreto, não foi encontrado o respectivo cargo'
-            ];
+            //Caso não exixtir cargo cadastrado com o id enviado, retorna a mensagem abaixo
+            if (!$cargo) {
+                $responseData = [
+                    'status' => 'error',
+                    'message' => 'O parâmetro cargo_id esta incorreto, não foi encontrado o respectivo cargo'
+                ];
 
-            return $this->response->setStatusCode(404)->setJSON($responseData);
+                return $this->response->setStatusCode(404)->setJSON($responseData);
+            }
         }
 
         $usuarioModel = new Usuario();
@@ -296,15 +317,26 @@ class UsuariosController extends BaseController
 
             //Caso já exixtir usuario cadastrado com o email enviado, retorna a mensagem abaixo
             if ($usuarioExiste) {
+
                 $responseData = [
-                    'status' => 'error',
-                    'message' => 'Já existe um usuário com o e-mail ' . $email
+                    'errors' => ['email' => ['Já existe um usuário com o e-mail escolhido']]
                 ];
 
-                return $this->response->setStatusCode(404)->setJSON($responseData);
+                return $this->response->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY)->setJSON($responseData);
             }
         }
-        
+
+        //Validação da confirmação da senha
+        if ($senha && $confirmar_senha) {
+            if ($senha != $confirmar_senha) {
+                $responseData = [
+                    'errors' => ['confirmar_senha' => ["Os campos Senha e CSonfirmar senha não conferêm"]]
+                ];
+
+                return $this->response->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY)->setJSON($responseData);
+            }
+        }
+
         //Dados para a alteração do usuário
         $data = [
             'nome' => $nome,
@@ -313,10 +345,11 @@ class UsuariosController extends BaseController
             'departamento_id' => $departamento_id,
             'ativo' => '1'
         ];
-        if($senha){
+        if ($senha) {
             $data['senha'] = password_hash($senha, PASSWORD_DEFAULT);
+            $data['confirmar_senha'] = $confirmar_senha;
         }
-        
+
         //Realiza a alteração do usuário
         if ($usuarioModel->update($id, $data)) {
 
@@ -331,13 +364,12 @@ class UsuariosController extends BaseController
             //Caso ocorra um erro de validação, retorna o erro encontrado
             $errors = $departamentoModel->errors();
 
+            $errosReturn = new ErrorsReturn();
             $responseData = [
-                'status' => 'error',
-                'message' => 'Erro na validação',
-                'errors' => $errors
+                'errors' =>  $errosReturn->errors($errors)
             ];
 
-            return $this->response->setStatusCode(400)->setJSON($responseData);
+            return $this->response->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY)->setJSON($responseData);
         }
     }
 

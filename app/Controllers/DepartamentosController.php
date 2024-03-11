@@ -3,9 +3,11 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use App\Libraries\JWTHandler;
+use App\library\ErrorsReturn;
+use App\Library\JWTHandler;
 use App\Models\CentroCusto;
 use App\Models\Departamento;
+use CodeIgniter\HTTP\Response;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class DepartamentosController extends BaseController
@@ -132,18 +134,19 @@ class DepartamentosController extends BaseController
         
         //Realizando a validação do centro de custo incorreto
         $centrosCustoModel = new CentroCusto();
-        $centroCusto = $centrosCustoModel->where('ativo', '1')->find($centro_custo_id);
+        if($centro_custo_id){
+            $centroCusto = $centrosCustoModel->where('ativo', '1')->find($centro_custo_id);
 
-        //Caso não exixtir centro de custo cadastrado com o id enviado, retorna a mensagem abaixo
-        if (!$centroCusto) {
-            $responseData = [
-                'status' => 'error',
-                'message' => 'O parâmetro centro_custo_id esta incorreto, não foi encontrado o respectivo centro de custo'
-            ];
+            //Caso não exixtir centro de custo cadastrado com o id enviado, retorna a mensagem abaixo
+            if (!$centroCusto) {
+                $responseData = [
+                    'status' => 'error',
+                    'message' => 'O parâmetro centro_custo_id esta incorreto, não foi encontrado o respectivo centro de custo'
+                ];
 
-            return $this->response->setStatusCode(404)->setJSON($responseData);
+                return $this->response->setStatusCode(404)->setJSON($responseData);
+            }
         }
-
         $departamentoModel = new Departamento();
 
         //Dados para o novo departamento
@@ -166,13 +169,12 @@ class DepartamentosController extends BaseController
             //Caso ocorra um erro de validação, retorna o erro encontrado
             $errors = $departamentoModel->errors(); // Obtenha os erros de validação
 
+            $errosReturn = new ErrorsReturn();
             $responseData = [
-                'status' => 'error',
-                'message' => 'Erro na validação',
-                'errors' => $errors
+                'errors' =>  $errosReturn->errors($errors)
             ];
 
-            return $this->response->setStatusCode(400)->setJSON($responseData);
+            return $this->response->setStatusCode( Response::HTTP_UNPROCESSABLE_ENTITY )->setJSON($responseData);
         }
     }
 
@@ -202,21 +204,26 @@ class DepartamentosController extends BaseController
 
         // Obtenha os parâmetros via PUT
         $titulo = $arrayPuts->titulo;
-        $centroCustoId = $arrayPuts->centro_custo_id;
+        $centro_custo_id = $arrayPuts->centro_custo_id;
 
          //Realizando a validação do centro de custo incorreto
          $centrosCustoModel = new CentroCusto();
-         $centroCusto = $centrosCustoModel->where('ativo', '1')->find($centroCustoId);
+         $centroCusto = $centrosCustoModel->where('ativo', '1')->find($centro_custo_id);
  
          //Caso não exixtir centro de custo cadastrado com o id enviado, retorna a mensagem abaixo
-         if (!$centroCusto) {
-             $responseData = [
-                 'status' => 'error',
-                 'message' => 'O parâmetro centro_custo_id esta incorreto, não foi encontrado o respectivo centro de custo'
-             ];
- 
-             return $this->response->setStatusCode(404)->setJSON($responseData);
-         }
+         if($centro_custo_id){
+            $centroCusto = $centrosCustoModel->where('ativo', '1')->find($centro_custo_id);
+
+            //Caso não exixtir centro de custo cadastrado com o id enviado, retorna a mensagem abaixo
+            if (!$centroCusto) {
+                $responseData = [
+                    'status' => 'error',
+                    'message' => 'O parâmetro centro_custo_id esta incorreto, não foi encontrado o respectivo centro de custo'
+                ];
+
+                return $this->response->setStatusCode(404)->setJSON($responseData);
+            }
+        }
 
         $departamentoModel = new Departamento();
 
@@ -234,7 +241,7 @@ class DepartamentosController extends BaseController
         //Seta o novo titulo de departamento para ser alterado
         $data = [
             'titulo' => $titulo,
-            'centro_custo_id' => $centroCustoId,
+            'centro_custo_id' => $centro_custo_id,
         ];
 
         //Realiza a alteração do titulo do departamento e o seu centro de custo conforme o id enviado
@@ -251,13 +258,12 @@ class DepartamentosController extends BaseController
             //Caso ocorra um erro de validação, retorna o erro encontrado
             $errors = $departamentoModel->errors();
 
+            $errosReturn = new ErrorsReturn();
             $responseData = [
-                'status' => 'error',
-                'message' => 'Erro na validação',
-                'errors' => $errors
+                'errors' =>  $errosReturn->errors($errors)
             ];
 
-            return $this->response->setStatusCode(400)->setJSON($responseData);
+            return $this->response->setStatusCode( Response::HTTP_UNPROCESSABLE_ENTITY )->setJSON($responseData);
         }
     }
 

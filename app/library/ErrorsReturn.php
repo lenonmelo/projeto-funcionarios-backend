@@ -1,44 +1,31 @@
 <?php
 
-namespace App\Libraries;
+namespace App\library;
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-class JWTHandler
+class ErrorsReturn
 {
     private $chave_token = "kjaskasjkasjdshdjshkhasjhasjhsalaslajdhdjshsdk";
 
     /**
-     * Valida um token JWT.
+     * Realiza o tratamento e formata a mensagem da maneira especifica para mostrar no front
      *
-     * @param string $token O token JWT a ser validado.
+     * @param string $error Erray com os erros encontrados.
      *
-     * @return string|bool Retorna uma string indicando o estado do token:
-     *                     - "VALID" se o token for válido.
-     *                     - "EXPIRED" se o token estiver expirado.
-     *                     - "INVALID" se o token for inválido devido ao número errado de segmentos.
-     *                     - false se ocorrer um erro não especificado durante a validação.
+     * @return array
      */
-    public function validarToken($token)
+    public function errors($errors)
     {
         try {
-            $dadosDecodificados = JWT::decode($token, new Key($this->chave_token, 'HS256'));
-            if ($dadosDecodificados) {
-                return "VALID";
+            $retorno = [];
+            foreach($errors AS $field => $error){
+                $retorno[$field][] =  $error;
             }
+            return $retorno;
         } catch (\Exception $e) {
-            //Caso o toke estiver expirado retorna o termo EXPIRED
-            if ($e->getMessage() == 'Expired token') {
-                return "EXPIRED";
-            } else {
-                //Caso o toke for invalido, retorna o terno INVALID
-                if ($e->getMessage() == "Wrong number of segments") {
-                    return "INVALID";
-                }
-
-                return false;
-            }
+            return $e->getMessage();
         }
     }
 

@@ -20,17 +20,30 @@ class Usuario extends Model
         'nome' => 'required',
         'email' => 'required',
         'senha' => 'required',
+        'confirmar_senha' => 'required',
+        'cargo_id' => 'required',
+        'departamento_id' => 'required',
+        
         'ativo' => 'required|in_list[0, 1]'
     ];
     protected $validationMessages   = [
         'nome' => [
-            'required' => 'O parâmetro nome é obrigatorio'
+            'required' => 'O campo Nome é obrigatorio'
         ],
         'email' => [
-            'required' => 'O parâmetro email é obrigatorio'
+            'required' => 'O campo E-mail é obrigatorio'
         ],
         'senha' => [
-            'required' => 'O parâmetro senha é obrigatorio'
+            'required' => 'O campo Senha é obrigatorio'
+        ],
+        'confirmar_senha' => [
+            'required' => 'O campo Confirmar Senha é obrigatorio'
+        ],
+        'cargo_id' => [
+            'required' => 'O campo Cargo é obrigatorio'
+        ],
+        'departamento_id' => [
+            'required' => 'O campo Departamento é obrigatorio'
         ],
         'ativo' => [
             'in_list' => 'O campo ativo dever ser 0 ou 1'

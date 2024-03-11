@@ -23,10 +23,10 @@ class Departamento extends Model
     ];
     protected $validationMessages   = [
         'titulo' => [
-            'required' => 'O parâmetro titulo é obrigatorio'
+            'required' => 'O campo Título é obrigatorio'
         ],
         'centro_custo_id' => [
-            'required' => 'O parâmetro centro_custo_id é obrigatorio'
+            'required' => 'O campo Centro de Custo é obrigatorio'
         ],
         'ativo' => [
             'in_list' => 'O campo ativo dever ser 0 ou 1'

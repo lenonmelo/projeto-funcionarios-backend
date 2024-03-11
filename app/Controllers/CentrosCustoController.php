@@ -3,8 +3,10 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use App\Libraries\JWTHandler;
+use App\library\ErrorsReturn;
+use App\Library\JWTHandler;
 use App\Models\CentroCusto;
+use CodeIgniter\HTTP\Response;
 
 class CentrosCustoController extends BaseController
 {
@@ -135,13 +137,12 @@ class CentrosCustoController extends BaseController
             //Caso ocorra um erro de validação, retorna o erro encontrado
             $errors = $centrosCustoModel->errors(); // Obtenha os erros de validação
 
+            $errosReturn = new ErrorsReturn();
             $responseData = [
-                'status' => 'error',
-                'message' => 'Erro na validação',
-                'errors' => $errors
+                'errors' =>  $errosReturn->errors($errors)
             ];
 
-            return $this->response->setStatusCode(400)->setJSON($responseData);
+            return $this->response->setStatusCode( Response::HTTP_UNPROCESSABLE_ENTITY )->setJSON($responseData);
         }
     }
 
@@ -203,13 +204,12 @@ class CentrosCustoController extends BaseController
             //Caso ocorra um erro de validação, retorna o erro encontrado
             $errors = $centrosCustoModel->errors();
 
+            $errosReturn = new ErrorsReturn();
             $responseData = [
-                'status' => 'error',
-                'message' => 'Erro na validação',
-                'errors' => $errors
+                'errors' =>  $errosReturn->errors($errors)
             ];
 
-            return $this->response->setStatusCode(400)->setJSON($responseData);
+            return $this->response->setStatusCode( Response::HTTP_UNPROCESSABLE_ENTITY )->setJSON($responseData);
         }
     }
 

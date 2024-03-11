@@ -23,7 +23,7 @@ class CentroCusto extends Model
     ];
     protected $validationMessages   = [
         'titulo' => [
-            'required' => 'O parâmetro titulo é obrigatorio'
+            'required' => 'O campo Título é obrigatorio'
         ],
         'ativo' => [
             'in_list' => 'O campo ativo dever ser 0 ou 1'

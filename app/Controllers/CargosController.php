@@ -3,8 +3,10 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use App\Libraries\JWTHandler;
+use App\library\ErrorsReturn;
+use App\Library\JWTHandler;
 use App\Models\Cargo;
+use CodeIgniter\HTTP\Response;
 
 class CargosController extends BaseController
 {
@@ -114,14 +116,12 @@ class CargosController extends BaseController
         } else {
             //Caso ocorra um erro de validação, retorna o erro encontrado
             $errors = $cargoModel->errors(); // Obtenha os erros de validação
-
+            $errosReturn = new ErrorsReturn();
             $responseData = [
-                'status' => 'error',
-                'message' => 'Erro na validação',
-                'errors' => $errors
+                'errors' =>  $errosReturn->errors($errors)
             ];
 
-            return $this->response->setStatusCode(200)->setJSON($responseData);
+            return $this->response->setStatusCode( Response::HTTP_UNPROCESSABLE_ENTITY )->setJSON($responseData);
         }
     }
 
@@ -182,14 +182,13 @@ class CargosController extends BaseController
         } else {
             //Caso ocorra um erro de validação, retorna o erro encontrado
             $errors = $cargoModel->errors();
-
+            
+            $errosReturn = new ErrorsReturn();
             $responseData = [
-                'status' => 'error',
-                'message' => 'Erro na validação',
-                'errors' => $errors
+                'errors' =>  $errosReturn->errors($errors)
             ];
 
-            return $this->response->setStatusCode(400)->setJSON($responseData);
+            return $this->response->setStatusCode( Response::HTTP_UNPROCESSABLE_ENTITY )->setJSON($responseData);
         }
     }
 
